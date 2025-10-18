@@ -62,3 +62,14 @@ def delete_student(student_id: int):
                 json.dump([s.dict() for s in students], f, ensure_ascii=False, indent=4)
             return {"message": "Student deleted successfully"}
     return {"error": "Student with this ID was not found"}
+
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from fastapi import Request
+
+templates = Jinja2Templates(directory="templates")
+
+@app.get("/", response_class=HTMLResponse)
+def serve_home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
