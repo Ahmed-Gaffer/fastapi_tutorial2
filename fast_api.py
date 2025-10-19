@@ -14,7 +14,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-)
+)   
 
 # تعريف نموذج الطالب مع التحقق من البيانات
 class Student(BaseModel):
