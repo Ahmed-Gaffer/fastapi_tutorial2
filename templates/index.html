@@ -1,204 +1,199 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>نظام إدارة الطلاب</title>
-    <style>
-        body {
-            font-family: "Cairo", sans-serif;
-            background-color: #f6f6f6;
-            padding: 30px;
-            direction: rtl;
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        .form-section, .list-section {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        label { display: block; margin-top: 10px; }
-        input {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-        }
-        button {
-            margin-top: 15px;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        button:hover { background-color: #0056b3; }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: center;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-        }
-        th {
-            background-color: #007bff;
-            color: white;
-        }
-        .actions button {
-            background-color: #dc3545;
-            margin-left: 5px;
-        }
-        .actions button.update {
-            background-color: #28a745;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نظام إدارة المدرسة</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: #fff;
+      font-family: "Cairo", sans-serif;
+      min-height: 100vh;
+    }
+    .card {
+      border-radius: 1rem;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      background-color: #ffffff10;
+      backdrop-filter: blur(10px);
+    }
+    .table thead {
+      background-color: #007bff;
+      color: #fff;
+    }
+    .btn-custom {
+      background-color: #007bff;
+      color: white;
+      border-radius: 8px;
+    }
+    .btn-custom:hover {
+      background-color: #0056b3;
+    }
+    input::placeholder {
+      text-align: right;
+    }
+  </style>
 </head>
-<body>
+<body class="p-4">
 
-    <h1>نظام إدارة الطلاب</h1>
+  <div class="container">
+    <h1 class="text-center mb-4 fw-bold">🎓 نظام إدارة الطلاب</h1>
 
-    <div class="form-section">
-        <h2>إضافة / تعديل طالب</h2>
-        <label>رقم الطالب (ID):</label>
-        <input type="number" id="studentId" placeholder="مثال: 1">
-
-        <label>الاسم:</label>
-        <input type="text" id="studentName" placeholder="مثال: أحمد محمد">
-
-        <label>الدرجة:</label>
-        <input type="number" id="studentGrade" placeholder="مثال: 90">
-
-        <button onclick="createOrUpdateStudent()">حفظ</button>
+    <!-- نموذج إضافة / تعديل طالب -->
+    <div class="card p-4 mb-4">
+      <h4 class="text-center mb-3">إضافة / تعديل طالب</h4>
+      <div class="row g-3">
+        <div class="col-md-3">
+          <input id="studentId" type="number" class="form-control" placeholder="رقم الطالب (ID)" min="1">
+        </div>
+        <div class="col-md-5">
+          <input id="studentName" type="text" class="form-control" placeholder="اسم الطالب">
+        </div>
+        <div class="col-md-2">
+          <input id="studentGrade" type="number" class="form-control" placeholder="الدرجة" min="0" max="100">
+        </div>
+        <div class="col-md-2 text-center">
+          <button id="saveBtn" class="btn btn-success w-100">💾 حفظ</button>
+        </div>
+      </div>
     </div>
 
-    <div class="list-section">
-        <h2>قائمة الطلاب</h2>
-        <table id="studentsTable">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>الاسم</th>
-                    <th>الدرجة</th>
-                    <th>التحكم</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+    <!-- جدول عرض الطلاب -->
+    <div class="card p-4">
+      <div class="d-flex justify-content-between mb-3">
+        <input id="searchInput" type="text" class="form-control w-50" placeholder="🔍 بحث بالاسم أو الرقم">
+        <button id="exportBtn" class="btn btn-light">📄 تصدير CSV</button>
+      </div>
+
+      <table class="table table-striped table-hover text-center align-middle">
+        <thead>
+          <tr>
+            <th>رقم الطالب</th>
+            <th>الاسم</th>
+            <th>الدرجة</th>
+            <th>إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="studentsTable"></tbody>
+      </table>
     </div>
+  </div>
 
-    <script>
-        // ✅ ربط فعلي بسيرفرك على Render
-        const API_URL = "https://fastapi-tutorial2-46xo.onrender.com/students/";
+  <script>
+    const API_BASE = "https://fastapi-tutorial2-46xo.onrender.com/students/";
 
-        async function fetchStudents() {
-            try {
-                const response = await fetch(API_URL);
-                const students = await response.json();
-                const tableBody = document.querySelector("#studentsTable tbody");
-                tableBody.innerHTML = "";
-                students.forEach(s => {
-                    const row = `
-                        <tr>
-                            <td>${s.id}</td>
-                            <td>${s.name}</td>
-                            <td>${s.grade}</td>
-                            <td class="actions">
-                                <button class="update" onclick="loadStudent(${s.id})">تعديل</button>
-                                <button onclick="deleteStudent(${s.id})">حذف</button>
-                            </td>
-                        </tr>`;
-                    tableBody.innerHTML += row;
-                });
-            } catch (error) {
-                alert("تعذر تحميل البيانات من السيرفر");
-                console.error(error);
-            }
-        }
+    // تحميل جميع الطلاب عند فتح الصفحة
+    document.addEventListener("DOMContentLoaded", loadStudents);
 
-        async function createOrUpdateStudent() {
-            const id = document.getElementById("studentId").value;
-            const name = document.getElementById("studentName").value;
-            const grade = document.getElementById("studentGrade").value;
+    async function loadStudents() {
+      const response = await fetch(API_BASE);
+      const students = await response.json();
+      displayStudents(students);
+    }
 
-            if (!id || !name || !grade) {
-                alert("من فضلك أدخل كل البيانات");
-                return;
-            }
+    function displayStudents(students) {
+      const tbody = document.getElementById("studentsTable");
+      const search = document.getElementById("searchInput").value.toLowerCase();
+      tbody.innerHTML = "";
 
-            const student = { id: parseInt(id), name, grade: parseInt(grade) };
+      students
+        .filter(s => s.name.toLowerCase().includes(search) || s.id.toString().includes(search))
+        .forEach(s => {
+          const row = `
+            <tr>
+              <td>${s.id}</td>
+              <td>${s.name}</td>
+              <td>${s.grade}</td>
+              <td>
+                <button class="btn btn-warning btn-sm" onclick="editStudent(${s.id}, '${s.name}', ${s.grade})">✏️ تعديل</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteStudent(${s.id})">🗑️ حذف</button>
+              </td>
+            </tr>`;
+          tbody.innerHTML += row;
+        });
+    }
 
-            try {
-                const existing = await fetch(API_URL);
-                const students = await existing.json();
-                const found = students.find(s => s.id == id);
+    document.getElementById("searchInput").addEventListener("input", loadStudents);
 
-                if (found) {
-                    await fetch(API_URL + id, {
-                        method: "PUT",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(student)
-                    });
-                    alert("تم تحديث بيانات الطالب بنجاح");
-                } else {
-                    await fetch(API_URL, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(student)
-                    });
-                    alert("تم إضافة الطالب بنجاح");
-                }
+    // إضافة / تعديل طالب
+    document.getElementById("saveBtn").addEventListener("click", async () => {
+      const id = parseInt(document.getElementById("studentId").value);
+      const name = document.getElementById("studentName").value.trim();
+      const grade = parseInt(document.getElementById("studentGrade").value);
 
-                clearForm();
-                fetchStudents();
-            } catch (error) {
-                alert("حدث خطأ أثناء حفظ البيانات");
-                console.error(error);
-            }
-        }
+      if (!id || !name || isNaN(grade)) {
+        Swal.fire("⚠️ خطأ", "يرجى إدخال جميع البيانات بشكل صحيح", "warning");
+        return;
+      }
 
-        async function deleteStudent(id) {
-            if (confirm("هل أنت متأكد من حذف هذا الطالب؟")) {
-                try {
-                    await fetch(API_URL + id, { method: "DELETE" });
-                    fetchStudents();
-                } catch (error) {
-                    alert("حدث خطأ أثناء الحذف");
-                    console.error(error);
-                }
-            }
-        }
+      const existing = await fetch(API_BASE + id);
+      if (existing.ok) {
+        // تعديل
+        await fetch(API_BASE + id, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, name, grade }),
+        });
+        Swal.fire("✅ تم التعديل", "تم تعديل بيانات الطالب بنجاح", "success");
+      } else {
+        // إضافة
+        const res = await fetch(API_BASE, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, name, grade }),
+        });
+        if (res.ok) Swal.fire("🎉 تم الحفظ", "تم إضافة الطالب بنجاح", "success");
+        else Swal.fire("⚠️ خطأ", "ربما يوجد طالب بنفس الرقم", "error");
+      }
 
-        async function loadStudent(id) {
-            try {
-                const response = await fetch(API_URL);
-                const students = await response.json();
-                const student = students.find(s => s.id == id);
-                if (student) {
-                    document.getElementById("studentId").value = student.id;
-                    document.getElementById("studentName").value = student.name;
-                    document.getElementById("studentGrade").value = student.grade;
-                }
-            } catch (error) {
-                alert("تعذر تحميل بيانات الطالب");
-            }
-        }
+      clearForm();
+      loadStudents();
+    });
 
-        function clearForm() {
-            document.getElementById("studentId").value = "";
-            document.getElementById("studentName").value = "";
-            document.getElementById("studentGrade").value = "";
-        }
+    function editStudent(id, name, grade) {
+      document.getElementById("studentId").value = id;
+      document.getElementById("studentName").value = name;
+      document.getElementById("studentGrade").value = grade;
+    }
 
-        fetchStudents();
-    </script>
+    async function deleteStudent(id) {
+      const confirm = await Swal.fire({
+        title: "هل أنت متأكد؟",
+        text: "سيتم حذف الطالب نهائيًا",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "نعم، احذف",
+        cancelButtonText: "إلغاء"
+      });
+
+      if (confirm.isConfirmed) {
+        await fetch(API_BASE + id, { method: "DELETE" });
+        Swal.fire("🗑️ تم الحذف", "تم حذف الطالب بنجاح", "success");
+        loadStudents();
+      }
+    }
+
+    function clearForm() {
+      document.getElementById("studentId").value = "";
+      document.getElementById("studentName").value = "";
+      document.getElementById("studentGrade").value = "";
+    }
+
+    // تصدير إلى CSV
+    document.getElementById("exportBtn").addEventListener("click", async () => {
+      const response = await fetch(API_BASE);
+      const students = await response.json();
+      const csv = "ID,Name,Grade\n" + students.map(s => `${s.id},${s.name},${s.grade}`).join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "students.csv";
+      a.click();
+    });
+  </script>
+
 </body>
 </html>
